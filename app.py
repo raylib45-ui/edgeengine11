@@ -16,10 +16,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Simulated live data fetcher (Replace this URL or logic with your actual data source/API)
-@st.cache_data(ttl=600)
-def get_live_pitcher_data():
-  @st.cache_data(ttl=60)
+@st.cache_data(ttl=60)
 def get_live_pitcher_data():
     try:
         res = requests.get("https://edge-engine.up.railway.app/", timeout=5)
@@ -33,26 +30,11 @@ def get_live_pitcher_data():
         {"name": "Braxton Ashcraft", "team": "Pittsburgh", "opp": "LAA", "line": 5.5, "proj": 6.2, "status": "OVER"},
         {"name": "Andrew Abbott", "team": "Cincinnati", "opp": "MIL", "line": 3.5, "proj": 4.5, "status": "OVER"}
     ]
-        # Example: Fetching live MLB schedule or your custom backend API JSON endpoint
-        url = "https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1"
-        res = requests.get(url, timeout=5)
-        if res.status_code == 200:
-            # Parse real games here when ready
-            pass
-    except Exception:
-        pass
-    
-    # Fallback/Dynamic structure template for active slate
-    return [
-        {"name": "Mason Adams", "team": "Colorado", "opp": "STL", "line": 3.5, "proj": 4.6, "status": "OVER"},
-        {"name": "Braxton Ashcraft", "team": "Pittsburgh", "opp": "LAA", "line": 5.5, "proj": 6.2, "status": "OVER"},
-        {"name": "Andrew Abbott", "team": "Cincinnati", "opp": "MIL", "line": 3.5, "proj": 4.5, "status": "OVER"}
-    ]
 
 # Header Bar with functional fetch button
 st.markdown("""
-    <div class="top-bar" style="display: flex; justify-space: space-between; align-items: center;">
-        <div><b>⚡ EDGE ENGINE v5</b> &nbsp;&nbsp;|&nbsp;&nbsp; 🟢 <b>Live API Connected</b></div>
+    <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div><b>⚡ EDGE ENGINE v5</b> &nbsp;&nbsp;|&nbsp;&nbsp; 🟢 <b>k-engine v6.3 api connected</b></div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -64,7 +46,6 @@ with col_btn:
 
 st.markdown("---")
 
-# Render dynamic cards from the data function instead of fixed text
 pitchers = get_live_pitcher_data()
 cols = st.columns(len(pitchers))
 
@@ -86,7 +67,7 @@ for i, p in enumerate(pitchers):
                 </div>
                 <br>
                 <div style="background:#0d1117; padding:8px; border-radius:4px; font-size:11px; color:#8b949e;">
-                    <b>LIVE SYNC ACTIVE</b><br>Fetching latest line movements and starting lineups in real time.
+                    <b>LIVE API SYNC</b><br>Tethered to k-engine backend feed.
                 </div>
             </div>
         """, unsafe_allow_html=True)
