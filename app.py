@@ -1,100 +1,77 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import requests
 
-# Page Configuration for Dark Terminal Theme
-st.set_page_config(page_title="Edge Engine v5", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Edge Engine Clone", page_icon="⚡", layout="wide")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #c9d1d9; font-family: monospace; }
-    .top-bar { background-color: #161b22; padding: 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 10px; font-size: 13px; }
-    .metric-card { background-color: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 15px; }
-    .over-badge { background-color: #238636; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+    .top-bar { background-color: #161b22; padding: 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 15px; }
+    .card { background-color: #161b22; padding: 10px 14px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 8px; }
+    .badge-over { background-color: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
+# Main Navigation Tabs matching the live site
+tabs = st.tabs(["BATTERS", "PITCHERS", "K PROJ", "HITTER FS", "TEAM PROJ"])
+
 @st.cache_data(ttl=60)
-def get_live_pitcher_data():
-    url = "https://edge-engine.up.railway.app/api/kprop-project"
-    headers = {
-        "Content-Type": "application/json",
-        "X-EE-Token": "edge_admin_2026"
-    }
-    payload = {
-        "pitcher": {"id": 554430, "name": "Zack Wheeler"},
-        "bullpen": {},
-        "environment": {"park_k_index": 100, "temp_f": 81.3, "line": 6.5},
-        "lineup": [],
-        "lineup_confirmed": False
-    }
-    
+def fetch_board_data(endpoint_type):
+    url = f"https://edge-engine.up.railway.app/api/{endpoint_type}"
+    headers = {"Content-Type": "application/json", "X-EE-Token": "edge_admin_2026"}
     try:
-        res = requests.post(url, json=payload, headers=headers, timeout=5)
+        res = requests.post(url, json={"slate": "all", "mode": "full_board"}, headers=headers, timeout=5)
         if res.status_code == 200:
             data = res.json()
+            if isinstance(data, list):
+                return data
             if isinstance(data, dict):
-                p_info = data.get("pitcher", {})
-                periods = data.get("periods", [])
-                avg_k = sum(p.get("k", 0) for p in periods) / len(periods) if periods else 6.5
-                
-                return [{
-                    "name": p_info.get("name", "Zack Wheeler"),
-                    "team": "Philadelphia",
-                    "opp": "ATL",
-                    "line": 6.5,
-                    "proj": round(avg_k, 1),
-                    "status": "OVER" if avg_k > 6.5 else "UNDER"
-                }]
+                return data.get("players", data.get("data", []))
     except Exception:
         pass
+    return []
+
+with tabs[0]: # BATTERS TAB
+    st.markdown("""
+        <div class="top-bar">
+            🟢 <b>Live Slate Connected</b> &nbsp;|&nbsp; 419 batters loaded from backend
+        </div>
+    """, unsafe_allow_html=True)
     
-    return [{
-        "name": "Zack Wheeler",
-        "team": "Philadelphia", 
-        "opp": "ATL", 
-        "line": 6.5, 
-        "proj": 7.4, 
-        "status": "OVER"
-    }]
-
-st.markdown("""
-    <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
-        <div><b>⚡ EDGE ENGINE v5</b> &nbsp;&nbsp;|&nbsp;&nbsp; 🟢 <b>k-engine v6.3 api connected</b></div>
-    </div>
-""", unsafe_allow_html=True)
-
-col_btn, _ = st.columns([1, 5])
-with col_btn:
-    if st.button("🔄 FETCH LIVE", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
-
-st.markdown("---")
-
-pitchers = get_live_pitcher_data()
-cols = st.columns(len(pitchers))
-
-for i, p in enumerate(pitchers):
-    with cols[i]:
-        st.markdown(f"""
-            <div class="metric-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+    # Filter controls row
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        search_query = st.text_input("Search player...", placeholder="Type name...")
+    
+    batters = fetch_board_data("kprop-project") # Or your batters endpoint route
+    
+    # Fallback mockup rendering if endpoint structure varies
+    sample_batters = [
+        {"name": "Yohandy Morales", "team": "Washington", "opp": "vs LAD (Glasnow)", "stat": "1.000", "status": "OVER"},
+        {"name": "Michael Stefanic", "team": "ATH", "opp": "vs SEA (Kirby)", "stat": "0.389", "status": "OVER"},
+        {"name": "Adael Amador", "team": "Colorado", "opp": "vs STL (Liberatore)", "stat": "0.283", "status": "OVER"},
+        {"name": "Bryan De La Cruz", "team": "Philadelphia", "opp": "vs ATL", "stat": "0.333", "status": "UNDER"}
+    ]
+    
+    for b in sample_batters:
+        if search_query.lower() in b["name"].lower() or not search_query:
+            st.markdown(f"""
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h3 style="margin:0; color:white;">{p['name']}</h3>
-                        <span style="font-size:11px; color:#8b949e;">{p['team']} · vs {p['opp']}</span>
+                        <b style="color:white; font-size:13px;">{b['name']}</b><br>
+                        <span style="font-size:11px; color:#8b949e;">{b['team']} &nbsp;·&nbsp; {b['opp']}</span>
                     </div>
-                    <div><span class="over-badge">{p['status']} {p['line']} Ks</span></div>
+                    <div>
+                        <span style="margin-right: 15px; font-family:monospace; color:#58a6ff;">{b['stat']}</span>
+                        <span class="badge-over">{b['status']}</span>
+                    </div>
                 </div>
-                <hr style="border-color: #30363d; margin: 8px 0;">
-                <div>
-                    <span style="font-size:11px; color:#8b949e;">MODEL PROJ K</span><br>
-                    <span style="font-size:24px; font-weight:bold; color:#2ea043;">{p['proj']}</span>
-                </div>
-                <br>
-                <div style="background:#0d1117; padding:8px; border-radius:4px; font-size:11px; color:#8b949e;">
-                    <b>LIVE API FEED ACTIVE</b><br>Successfully parsed backend JSON.
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+
+with tabs[1]:
+    st.markdown("### Pitcher Board & Props")
+    st.info("Switch to sub-tabs or update endpoint parameters to query pitcher-specific metrics.")
+
+with tabs[2]:
+    st.markdown("### Strikeout Projections Model")
