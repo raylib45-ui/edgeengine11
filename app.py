@@ -18,10 +18,27 @@ st.markdown("""
 
 @st.cache_data(ttl=60)
 def get_live_pitcher_data():
+    url = "https://edge-engine.up.railway.app/api/kprop-project"
+    headers = {
+        "Content-Type": "application/json",
+        "X-EE-Token": "edge_admin_2026"
+    }
+    payload = {
+        "pitcher": {"id": 554430, "name": "Zack Wheeler"},
+        "bullpen": {},
+        "environment": {"park_k_index": 100, "temp_f": 81.3, "line": 6.5},
+        "lineup": [],
+        "lineup_confirmed": False
+    }
+    
     try:
-        res = requests.get("https://edge-engine.up.railway.app/", timeout=5)
+        res = requests.post(url, json=payload, headers=headers, timeout=5)
         if res.status_code == 200:
-            return res.json()
+            data = res.json()
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict):
+                return [data]
     except Exception:
         pass
     
@@ -55,15 +72,15 @@ for i, p in enumerate(pitchers):
             <div class="metric-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h3 style="margin:0; color:white;">{p['name']}</h3>
-                        <span style="font-size:11px; color:#8b949e;">{p['team']} · vs {p['opp']}</span>
+                        <h3 style="margin:0; color:white;">{p.get('name', 'Pitcher')}</h3>
+                        <span style="font-size:11px; color:#8b949e;">{p.get('team', 'Team')} · vs {p.get('opp', 'OPP')}</span>
                     </div>
-                    <div><span class="over-badge">OVER {p['line']} Ks</span></div>
+                    <div><span class="over-badge">OVER {p.get('line', 0)} Ks</span></div>
                 </div>
                 <hr style="border-color: #30363d; margin: 8px 0;">
                 <div>
                     <span style="font-size:11px; color:#8b949e;">PROJ K</span><br>
-                    <span style="font-size:24px; font-weight:bold; color:#2ea043;">{p['proj']}</span>
+                    <span style="font-size:24px; font-weight:bold; color:#2ea043;">{p.get('proj', 0)}</span>
                 </div>
                 <br>
                 <div style="background:#0d1117; padding:8px; border-radius:4px; font-size:11px; color:#8b949e;">
