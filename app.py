@@ -19,7 +19,20 @@ st.markdown("""
 # Simulated live data fetcher (Replace this URL or logic with your actual data source/API)
 @st.cache_data(ttl=600)
 def get_live_pitcher_data():
+  @st.cache_data(ttl=60)
+def get_live_pitcher_data():
     try:
+        res = requests.get("https://edge-engine.up.railway.app/", timeout=5)
+        if res.status_code == 200:
+            return res.json()
+    except Exception:
+        pass
+    
+    return [
+        {"name": "Mason Adams", "team": "Colorado", "opp": "STL", "line": 3.5, "proj": 4.6, "status": "OVER"},
+        {"name": "Braxton Ashcraft", "team": "Pittsburgh", "opp": "LAA", "line": 5.5, "proj": 6.2, "status": "OVER"},
+        {"name": "Andrew Abbott", "team": "Cincinnati", "opp": "MIL", "line": 3.5, "proj": 4.5, "status": "OVER"}
+    ]
         # Example: Fetching live MLB schedule or your custom backend API JSON endpoint
         url = "https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1"
         res = requests.get(url, timeout=5)
