@@ -1,4 +1,4 @@
-     import streamlit as st
+import streamlit as st
 import pandas as pd
 import requests
 
@@ -30,7 +30,6 @@ def fetch_full_slate():
     except Exception:
         pass
     
-    # Fallback DataFrame representing your multi-ID structure
     return pd.DataFrame([
         {"id": 2051887, "pitcherId": 665871, "batterId": 678246, "gameId": 824639, "ballparkId": 17, "teamId": 145},
         {"id": 2051888, "pitcherId": 554430, "batterId": 621566, "gameId": 824639, "ballparkId": 17, "teamId": 145},
@@ -45,18 +44,8 @@ st.markdown("""
 
 df = fetch_full_slate()
 
-# Search and filter controls
-col1, col2 = st.columns([2, 4])
-with col1:
-    search_id = st.text_input("Filter by ID / Pitcher ID", placeholder="Enter ID...")
-
+search_id = st.text_input("Filter by ID / Pitcher ID", placeholder="Enter ID...")
 if search_id:
     df = df[df.astype(str).apply(lambda x: x.str.contains(search_id)).any(axis=1)]
 
-# Interactive data grid for the clone
-st.dataframe(
-    df,
-    use_container_width=True,
-    hide_index=True,
-    height=600
-)  
+st.dataframe(df, use_container_width=True, hide_index=True, height=600)
