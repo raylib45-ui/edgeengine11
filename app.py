@@ -69,4 +69,4 @@ with col3:
             <hr style="border-color: #30363d;">
             <p style="font-size:12px;">Last 7 starts trend: [🟩 🟥 🟩 🟩 🟥 🟩 🟩]</p>
         </div>
-    """, unsafe_app_html=True)
+    """, unsafe_allow_html=True)
